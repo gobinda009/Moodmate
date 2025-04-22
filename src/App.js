@@ -9,6 +9,7 @@ function App() {
   const [showMoodNotes, setShowMoodNotes] = useState(true)
   const [darkMode, setDarkMode] = useState(false)
   const [selectedDate, setSelectedDate] = useState(dayjs())
+  const [flag, setFlag] = useState(false)
 
   const handleFlagChange = () => {
     setShowMoodNotes(false)
@@ -82,34 +83,37 @@ function App() {
       </div>
       {/* Main Card Content */}
       <CustomCard darkMode={darkMode} onViewAll={handleViewAll}>
-        {showMoodNotes ? (
-          <MoodNotesPage
-            onFlagChange={handleFlagChange}
-            darkMode={darkMode}
-            isMoodNotes
-          />
-        ) : (
-          <>
-            <div style={{ width: '50%', margin: '0 10px' }}>
-              <div style={{ marginBottom: '20px' }}>
-                <MoodSelector selectedDate={selectedDate} darkMode={darkMode} />
-              </div>
-            </div>
-            <div style={{ width: '50%', margin: '0 10px' }}>
-              <div style={{ marginBottom: '20px' }}>
-                <BasicDateCalendar
-                  selectedDate={selectedDate}
-                  setSelectedDate={setSelectedDate}
-                  darkMode={darkMode}
-                />
-              </div>
-            </div>
-          </>
-        )}
-
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: '20px',
+            width: '100%',
+          }}
+        >
+          <div style={{ flex: '1 1 300px', maxWidth: '500px', minWidth: '280px' }}>
+            <MoodSelector selectedDate={selectedDate} darkMode={darkMode} flag={flag} setFlag={setFlag} />
+          </div>
+          <div style={{ flex: '1 1 300px', maxWidth: '500px', minWidth: '280px' }}>
+            <BasicDateCalendar
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              darkMode={darkMode}
+            />
+          </div>
+        </div>
+        <MoodNotesPage
+          onFlagChange={handleFlagChange}
+          darkMode={darkMode}
+          flag={flag} 
+          setFlag={setFlag}
+        />
       </CustomCard>
     </div>
   )
+  
 }
 
 export default App
