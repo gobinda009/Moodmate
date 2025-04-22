@@ -1,19 +1,19 @@
-import React, { useState } from 'react'
+import React from 'react'
 import NotesGrid from './NoteGrid'
 
-const MoodNotesPage = ({ onFlagChange }) => {
+const MoodNotesPage = ({ onFlagChange, darkMode }) => {
     const handleCompo = () => {
-        onFlagChange(); // Call the function passed as a prop to update the flag state
+        onFlagChange();
     };
     return (
         <div style={{
             padding: '40px 20px',
-            background: 'linear-gradient(to bottom, #fba863, #e87072)',
-            color: 'white',
+            background: darkMode ? '#222' : 'linear-gradient(to bottom, #fba863, #e87072)',
+            color: darkMode ? 'white' : 'white',
             fontFamily: 'sans-serif',
-            width:"100%",
-            borderRadius:"16px",
-            marginTop:"20px"
+            width: "100%",
+            borderRadius: "16px",
+            marginTop: "20px"
         }}>
             <div style={{
                 display: 'flex',
@@ -30,7 +30,7 @@ const MoodNotesPage = ({ onFlagChange }) => {
                     fontWeight: '500',
                     cursor: 'pointer',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    
+
                 }}
                 onClick={handleCompo}
                 >
@@ -50,7 +50,7 @@ const MoodNotesPage = ({ onFlagChange }) => {
                 All Notes
             </div>
 
-            <NotesGrid />
+            <NotesGrid darkMode={darkMode} />
         </div>
     )
 }

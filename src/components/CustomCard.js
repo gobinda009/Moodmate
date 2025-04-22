@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Card, CardBody } from 'reactstrap'
+import { fetchWeatherData } from './api/weatherApi' // Adjust the path as needed
 
-const CustomCard = ({ children }) => {
+const CustomCard = ({ children, darkMode, onViewAll }) => {
   const [weatherData, setWeatherData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -17,41 +18,21 @@ const CustomCard = ({ children }) => {
   }
 
   useEffect(() => {
-    const fetchWeatherData = async (latitude, longitude) => {
-      try {
-        const API_KEY = '1028ab98069aec2a1dfccd1607595da3'
-        const controller = new AbortController()
-
-        const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${API_KEY}`,
-          { signal: controller.signal }
-        )
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch weather data')
-        }
-
-        const data = await response.json()
-        setWeatherData({
-          temperature: data.main.temp,
-          city: data.name,
-          weatherCondition: data.weather[0].main,
-        })
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     const getUserLocation = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          (position) => {
+          async (position) => {
             const { latitude, longitude } = position.coords
-            fetchWeatherData(latitude, longitude)
+            try {
+              const data = await fetchWeatherData(latitude, longitude)
+              setWeatherData(data)
+            } catch (err) {
+              setError(err.message)
+            } finally {
+              setLoading(false)
+            }
           },
-          (error) => {
+          () => {
             setError('Failed to retrieve location')
             setLoading(false)
           }
@@ -63,21 +44,36 @@ const CustomCard = ({ children }) => {
     }
 
     getUserLocation()
-
-    return () => {
-      // Cleanup on component unmount
-    }
   }, [])
 
-  if (loading) {
-    return <div>Loading...</div>
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error}</div>
+
+  const weatherIcon = weatherIcons[weatherData.weatherCondition] || '🌤️'
+
+  const getLightModeColor = (temp) => {
+    if (temp <= 0) return '#d1e7f3'
+    if (temp <= 15) return '#a0c4e4'
+    if (temp <= 25) return '#ffe0b2'
+    if (temp <= 35) return '#ffebcc'
+    return '#f0e5d8'
   }
 
-  if (error) {
-    return <div>Error: {error}</div>
+  const getDarkModeColor = (temp) => {
+    if (temp <= 0) return '#1e293b'
+    if (temp <= 15) return '#334155'
+    if (temp <= 25) return '#3f3f46'
+    if (temp <= 35) return '#4b5563'
+    return '#57534e'
   }
 
-  const weatherIcon = weatherIcons[weatherData.weatherCondition] || '🌤️' // Default if condition is not mapped
+  const cardBackgroundColor = darkMode
+    ? getDarkModeColor(weatherData.temperature)
+    : getLightModeColor(weatherData.temperature)
+
+  const textColor = darkMode ? '#fff' : '#000'
+  const badgeBg = darkMode ? '#475569' : '#eee'
+  const badgeText = darkMode ? '#f8fafc' : '#555'
 
   return (
     <Card
@@ -88,9 +84,11 @@ const CustomCard = ({ children }) => {
         display: 'flex',
         flexDirection: 'column',
         padding: '20px',
+        backgroundColor: cardBackgroundColor,
+        transition: 'background-color 0.3s ease',
       }}
     >
-      {/* Header Section */}
+      {/* Header */}
       <div
         style={{
           display: 'flex',
@@ -98,16 +96,16 @@ const CustomCard = ({ children }) => {
           alignItems: 'center',
         }}
       >
-        <h2 style={{ margin: 0 }}>Moodmate</h2>
+        <h2 style={{ margin: 0, color: textColor }}>Moodmate</h2>
         <div
           style={{
             padding: '8px 12px',
-            backgroundColor: '#eee',
+            backgroundColor: badgeBg,
             borderRadius: '20px',
             display: 'flex',
             alignItems: 'center',
             fontSize: '16px',
-            color: '#555',
+            color: badgeText,
           }}
         >
           <span style={{ marginRight: '6px' }}>{weatherIcon}</span>
@@ -115,18 +113,40 @@ const CustomCard = ({ children }) => {
         </div>
       </div>
 
-      {/* Body Section */}
+      {/* Main Body */}
       <CardBody
         style={{
-          flex: 1,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: 0,
+          marginTop: '45px',
+          color: textColor,
         }}
       >
         {children}
       </CardBody>
+
+      {/* View All Button */}
+      {onViewAll && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+          <button
+            onClick={onViewAll}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: darkMode ? '#334155' : '#ddd',
+              color: darkMode ? '#fff' : '#000',
+              border: 'none',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              transition: 'background-color 0.3s',
+            }}
+          >
+            View All
+          </button>
+        </div>
+      )}
     </Card>
   )
 }
